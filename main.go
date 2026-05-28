@@ -33,10 +33,13 @@ func getAccounts(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("URL:", r.URL)
 	fmt.Println("Headers:", r.Header)
 
-	fmt.Fprintf(w, "Write")
+	fmt.Fprintf(w, "Write") // Use json.Marshal()
 }
 
 func main() {
 	http.HandleFunc("/accounts", getAccounts)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", nil)) // With nil, using DefaultServeMux
+	// Config this server Manually
+
+	// Graceful Shutdown
 }
