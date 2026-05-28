@@ -1,62 +1,42 @@
 package main
 
 import (
-"net/http"
-"time"
-"github.com/gin-gonic/gin"
-"github.com/google/uuid"
-"fmt"
+	"fmt"
+	"log"
+	"net/http"
+	"time"
 )
 
-
 type account struct {
-    Id        string    `json:"id"`
-    Name      string    `json:"name"`
-    Currency  string    `json:"currency"`
-    Balance   int       `json:"balance"`
-    CreatedAt time.Time `json:"created_at"`
-    UpdatedAt time.Time `json:"updated_at"`
-    DeletedAt time.Time `json:"deleted_at"`
+	ID         string
+	Name       string
+	Currency   string
+	Balance    int64
+	Created_at time.Time
+	Updated_at time.Time
+	Deleted_at time.Time
 }
 
 var accounts = []account{
-	{Id: uuid.NewString(), Name: "mai", Currency: "USD", Balance: 1000, CreatedAt: time.Now()},
+	{
+		ID:         "123",
+		Name:       "Hoang Hai Ha Van",
+		Currency:   "USD",
+		Balance:    1000,
+		Created_at: time.Now(),
+	},
 }
 
-func getAllAccounts(c *gin.Context){
-	c.IndentedJSON(http.StatusOK, accounts)
-	ctx := c.Request.Context()
-	fmt.Println(c)
-	fmt.Println(ctx)
+func getAccounts(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(r) // prints the pointer address
+	fmt.Println("Method:", r.Method)
+	fmt.Println("URL:", r.URL)
+	fmt.Println("Headers:", r.Header)
+
+	fmt.Fprintf(w, "Write")
 }
 
-func getAccount(c *gin.Context){
-	id := c.Param("id")
-	for _, a := range accounts{
-		if a.Id == id {
-			c.JSON(http.StatusOK, a)
-			return
-		}
-	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"error":"account not found"})
-}
-
-func createAccount(c *gin.Context){
-	var account account
-
-	if err := c.BindJSON(&account); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	accounts = append(accounts, account)
-	c.IndentedJSON(http.StatusCreated, account)
-}
-
-func main(){
-	router := gin.Default()
-	router.GET("/accounts", getAllAccounts)
-	router.GET("/accounts/:id", getAccount)
-	router.POST("/accounts", createAccount)
-	router.Run("localhost:8080")
+func main() {
+	http.HandleFunc("/accounts", getAccounts)
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
