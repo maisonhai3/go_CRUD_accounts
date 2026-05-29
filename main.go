@@ -53,10 +53,12 @@ func getAccountById(w http.ResponseWriter, r *http.Request) {
 			}
 			w.Header().Set("Content-type", "application/json")
 			w.WriteHeader(http.StatusOK)
-			w.Write(aJSON)
+			_, _ = w.Write(aJSON)
 			return
 		}
 	}
+
+	w.WriteHeader(http.StatusNotFound)
 }
 
 func getAccounts(w http.ResponseWriter, r *http.Request) {
@@ -74,7 +76,7 @@ func getAccounts(w http.ResponseWriter, r *http.Request) {
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /accounts", getAccounts)
-	mux.HandleFunc("GET /accounts/:id", getAccounts)
+	mux.HandleFunc("GET /accounts/{id}", getAccountById)
 
 	// Config this server Manually
 	srv := http.Server{
