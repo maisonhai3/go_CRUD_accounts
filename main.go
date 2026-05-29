@@ -32,17 +32,28 @@ var accounts = []account{
 }
 
 func getAccountById(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
 	defer cancel()
 
 	id := r.PathValue("id")
 	ctx = context.WithValue(ctx, "userId", id)
 
 	// Fake a DB call
-	go func(ctx context.Context) {
-		log.Printf("Get Account By Id %v", ctx.Value("userId"))
-		time.Sleep(1 * time.Second)
-	}(ctx)
+	func(ctx context.Context, id string) {
+		log.Printf("Getting Account By Id %v", id)
+
+		select {
+		case <-time.After(2 * time.Second):
+			log.Printf("Finished fetching %s", id)
+		case <-ctx.Done():
+			log.Printf("Abort fetching %s: %v", id, ctx.Err())
+		}
+	}(ctx, id)
+
+	if err := ctx.Err(); err != nil {
+		w.WriteHeader(http.StatusGatewayTimeout)
+		return
+	}
 
 	for _, a := range accounts {
 		if a.ID == id {
