@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -35,11 +36,16 @@ func getAccountById(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
 	defer cancel()
 
+	fmt.Printf("ctx channel: %v\n", ctx.Done())
+
+	type ctxKey string
+	const userIDKey ctxKey = "user-id"
 	id := r.PathValue("id")
-	ctx = context.WithValue(ctx, "userId", id)
+	ctx = context.WithValue(ctx, userIDKey, id)
 
 	// Fake a DB call
 	func(ctx context.Context, id string) {
+		fmt.Printf("ctx channel: %v\n", ctx.Done())
 		log.Printf("Getting Account By Id %v", id)
 
 		select {
@@ -59,7 +65,7 @@ func getAccountById(w http.ResponseWriter, r *http.Request) {
 		if a.ID == id {
 			aJSON, err := json.Marshal(a)
 			if err != nil {
-				log.Fatalf("Error in marshalling: %v", err.Error())
+				http.Error(w, "Error in marshalling", http.StatusInternalServerError)
 				return
 			}
 			w.Header().Set("Content-type", "application/json")
