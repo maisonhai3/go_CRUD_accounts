@@ -35,3 +35,10 @@ Khi build, để ý 6 thứ này. Có hesitate khi type không?
 4/6 flow tự nhiên = fluent, move on. 
 < 3/6 = Tour of Go chưa stick, re-do warmup. 
 Đây là honest self-check, không gian lận với chính mình ở đây — vì M5 (Ledger concurrency) sẽ punish brutally nếu Go syntax vẫn còn cản trở.
+
+# Tasks
+You still owe me:
+
+- Build v2 with /accounts/{id}, fake delayed fetchAccount, 1-second timeout
+- Test 3 scenarios với curl
+- Answer the sequencing question — 3 things happen when timeout fires, in order, what are they?
