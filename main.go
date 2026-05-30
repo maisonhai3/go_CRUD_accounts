@@ -36,6 +36,10 @@ func getAccountById(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
 	defer cancel()
 
+	if err := ctx.Err(); err != nil {
+		return // The client gone, forget the work.
+	}
+
 	fmt.Printf("ctx channel: %v\n", ctx.Done())
 
 	type ctxKey string
@@ -105,19 +109,22 @@ func main() {
 	}
 
 	// Graceful Shutdown
+
+	// Just monitoring if we are running properly
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Server error: %v", err)
 		}
 	}()
 
+	// Waiting for OS say us to cook
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit // We're waiting
 
+	// Okay, OS said it. I quit.
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatalf("Shutdown Failed: %v", err)
 	}
