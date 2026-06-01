@@ -95,6 +95,10 @@ func getAccounts(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	db := initDB(context.Background())
+	
+	defer db.Close()
+	
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /accounts", getAccounts)
 	mux.HandleFunc("GET /accounts/{id}", getAccountById)
