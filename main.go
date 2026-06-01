@@ -10,6 +10,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"accountCRUD/repositories"
 )
 
 type account struct {
@@ -95,7 +97,7 @@ func getAccounts(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	db := initDB(context.Background())
+	db := repositories.InitDB(context.Background())
 	
 	defer db.Close()
 	

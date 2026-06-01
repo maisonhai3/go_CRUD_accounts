@@ -1,4 +1,4 @@
-package main
+package repositories
 
 import (
 	"context"
@@ -13,7 +13,7 @@ type DBHandler struct {
 	DBConn *sql.DB
 }
 
-func initDB(ctx context.Context)(*sql.DB){
+func InitDB(ctx context.Context) *sql.DB {
 	// db, err := sql.Open("sqlite", "file:accounts.db")
 	db, err := sql.Open("sqlite", "file:accounts.db?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)")
 	if err != nil {
@@ -26,7 +26,7 @@ func initDB(ctx context.Context)(*sql.DB){
 		log.Fatalf("DB init failed: %v", err.Error())
 	}
 
-	// schema := 
+	// schema :=
 	// db.ExecContext(ctx, schema)
 
 	return db
