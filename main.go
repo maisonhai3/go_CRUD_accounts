@@ -14,17 +14,7 @@ import (
 	"accountCRUD/repositories"
 )
 
-type account struct {
-	ID        string
-	Name      string
-	Currency  string
-	Balance   int64
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt time.Time
-}
-
-var accounts = []account{
+var accounts = []repositories.Account{
 	{
 		ID:        "123",
 		Name:      "Hoang Hai Ha Van",
@@ -32,56 +22,6 @@ var accounts = []account{
 		Balance:   1000,
 		CreatedAt: time.Now(),
 	},
-}
-
-func getAccountById(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
-	defer cancel()
-
-	if err := ctx.Err(); err != nil {
-		return // The client gone, forget the work.
-	}
-
-	fmt.Printf("ctx channel: %v\n", ctx.Done())
-
-	type ctxKey string
-	const userIDKey ctxKey = "user-id"
-	id := r.PathValue("id")
-	ctx = context.WithValue(ctx, userIDKey, id)
-
-	// Fake a DB call
-	func(ctx context.Context, id string) {
-		fmt.Printf("ctx channel: %v\n", ctx.Done())
-		log.Printf("Getting Account By Id %v", id)
-
-		select {
-		case <-time.After(2 * time.Second):
-			log.Printf("Finished fetching %s", id)
-		case <-ctx.Done():
-			log.Printf("Abort fetching %s: %v", id, ctx.Err())
-		}
-	}(ctx, id)
-
-	if err := ctx.Err(); err != nil {
-		w.WriteHeader(http.StatusGatewayTimeout)
-		return
-	}
-
-	for _, a := range accounts {
-		if a.ID == id {
-			aJSON, err := json.Marshal(a)
-			if err != nil {
-				http.Error(w, "Error in marshalling", http.StatusInternalServerError)
-				return
-			}
-			w.Header().Set("Content-type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write(aJSON)
-			return
-		}
-	}
-
-	w.WriteHeader(http.StatusNotFound)
 }
 
 func getAccounts(w http.ResponseWriter, r *http.Request) {
@@ -98,12 +38,12 @@ func getAccounts(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	db := repositories.InitDB(context.Background())
-	
+
 	defer db.Close()
-	
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /accounts", getAccounts)
-	mux.HandleFunc("GET /accounts/{id}", getAccountById)
+	mux.HandleFunc("GET /accounts/{id}", GetAccountById)
 
 	// Config this server Manually
 	srv := http.Server{
