@@ -77,7 +77,8 @@ func (h *DBHandler) GetAccountById(w http.ResponseWriter, r *http.Request) {
 	// Real DB call
 	a, err := h.GetById(ctx, id)
 	if errors.Is(err, ErrNotFound) {
-		http.NotFound(w, r)
+		w.WriteHeader(http.StatusNotFound)
+		return
 	}
 
 	// DB timeout
@@ -87,6 +88,13 @@ func (h *DBHandler) GetAccountById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Serialize
+	j, err := json.Marshal(a)
+	if err != nil {
+		http.Error(w, "Error in marshaling", http.StatusInternalServerError)
+		return
+	}
 
-	w.WriteHeader(http.StatusNotFound)
+	w.Header().Set("Content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(j)
 }

@@ -3,9 +3,7 @@ package repositories
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"log"
-	"net/http"
 	"time"
 
 	_ "modernc.org/sqlite"

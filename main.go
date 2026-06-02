@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -38,12 +37,14 @@ func getAccounts(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	db := repositories.InitDB(context.Background())
-
+	dbHandler := &repositories.DBHandler{
+		DBConn: db,
+	}
 	defer db.Close()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /accounts", getAccounts)
-	mux.HandleFunc("GET /accounts/{id}", GetAccountById)
+	mux.HandleFunc("GET /accounts/{id}", dbHandler.GetAccountById)
 
 	// Config this server Manually
 	srv := http.Server{
