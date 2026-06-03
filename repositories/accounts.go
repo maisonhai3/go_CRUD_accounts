@@ -61,7 +61,7 @@ func (h *DBHandler) getAll(ctx context.Context) ([]Account, error) {
 }
 
 func (h *DBHandler) GetAccountById(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 60*time.Second)
 	defer cancel()
 
 	if err := ctx.Err(); err != nil {
@@ -76,7 +76,7 @@ func (h *DBHandler) GetAccountById(w http.ResponseWriter, r *http.Request) {
 
 	// Real DB call
 	a, err := h.GetById(ctx, id)
-	if errors.Is(err, ErrNotFound) {
+	if errors.Is(err, sql.ErrNoRows) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
