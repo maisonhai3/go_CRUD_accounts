@@ -68,13 +68,8 @@ func (h *DBHandler) GetAccountById(w http.ResponseWriter, r *http.Request) {
 		return // The client gone, forget the work.
 	}
 
-	// Add more ctx
-	type ctxKey string
-	const userIDKey ctxKey = "user-id"
-	id := r.PathValue("id")
-	ctx = context.WithValue(ctx, userIDKey, id)
-
 	// Real DB call
+	id := r.PathValue("id")
 	a, err := h.GetById(ctx, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		w.WriteHeader(http.StatusNotFound)
