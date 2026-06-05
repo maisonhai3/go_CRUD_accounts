@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strconv"
 	"time"
 )
 
@@ -60,4 +61,24 @@ func (h *DBHandler) getAll(ctx context.Context) ([]Account, error) {
 	return out, rows.Err()
 }
 
-// ----------- Request Handlers ------------
+func (h *DBHandler) createAccount(ctx context.Context, acc AccountDTO) (string, error) {
+	var a = Account{
+		Currency:  acc.Currency,
+		Name:      acc.Name,
+		Balance:   0,
+		CreatedAt: time.Now(),
+	}
+
+	result, err := h.DBConn.ExecContext(ctx, `INSERT INTO accounts (currency, name, balance, created_at) VALUES (?,?,?,?)`,
+		a.Currency, a.Name, a.Balance, a.CreatedAt)
+	if err != nil {
+		return "", err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return "", err
+	}
+
+	return strconv.FormatInt(id, 10), nil
+}
