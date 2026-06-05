@@ -19,6 +19,8 @@ type Account struct {
 	DeletedAt time.Time
 }
 
+// ----------- DB Handlers ------------
+
 func (h *DBHandler) GetById(ctx context.Context, id string) (Account, error) {
 	var a Account
 	// Emit a query to db with Scan()
@@ -59,6 +61,8 @@ func (h *DBHandler) getAll(ctx context.Context) ([]Account, error) {
 
 	return out, rows.Err()
 }
+
+// ----------- Request Handlers ------------
 
 func (h *DBHandler) GetAccountById(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 60*time.Second)
