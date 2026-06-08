@@ -100,17 +100,31 @@ type createAccSchema struct {
 	currency string
 }
 
-func isValidCurrency(cur string) bool {
-	// Whitelist
-	switch cur {
-	case "VND", "USD":
-		return true
-	}
-	return false
-}
+func (h *DBHandler) GetAccounts(w http.ResponseWriter, r http.Request) {
+	// Trusted Boundary mindset
 
-type AccountDTO struct {
-	ID       string
-	Name     string
-	Currency string
+	// -------------------- 1
+	// I don't believe you, requesters
+
+	// Don't parse the whole request.
+	// Trunk it
+
+	// Drop disallowed fields using what?
+
+	// Okay, you provide rightful fields, but not enough
+	// Validations
+
+	// OK, I trust you.
+	// Now, I will invoke DB to get your data
+
+	// -------------------- 2
+	// DBMS
+
+	// DB, you give me some data, but I do not trust you.
+	// So, I encode it into DTO by myself
+
+	// Okay, We've done with data extraction
+
+	// -------------------- 3
+	// Write
 }
