@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -100,7 +101,15 @@ type createAccSchema struct {
 	currency string
 }
 
+type GetQueryParams struct {
+	Currency string
+	Limit    int
+}
+
 func (h *DBHandler) GetAccounts(w http.ResponseWriter, r http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+
 	// Trusted Boundary mindset
 
 	// -------------------- 1
@@ -108,17 +117,49 @@ func (h *DBHandler) GetAccounts(w http.ResponseWriter, r http.Request) {
 
 	// Don't parse the whole request.
 	// Trunk it
+	if len(r.URL.RawQuery) > 100 {
+		http.Error(w, "query is too long", http.StatusBadRequest)
+		return
+	}
 
 	// Drop disallowed fields using what?
+	query := r.URL.Query()
+	allowed := map[string]bool{
+		"currency": true,
+		"limit":    true,
+	}
+
+	for key := range query {
+		if !allowed[key] {
+			http.Error(w, "key is not allowed", http.StatusBadRequest)
+			return
+		}
+	}
 
 	// Okay, you provide rightful fields, but not enough
 	// Validations
+	currency := query.Get("currency")
+	if !isValidCurrency(currency) {
+		http.Error(w, "currency is invalid", http.StatusBadRequest)
+		return
+	}
+
+	limit := 10
+	limitStr := query.Get("limit")
+	if limitStr != "" {
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil || limit <= 0 {
+			http.Error(w, "limit is invalid", http.StatusBadRequest)
+			return
+		}
+	}
 
 	// OK, I trust you.
 	// Now, I will invoke DB to get your data
 
 	// -------------------- 2
 	// DBMS
+	a, err := h.DBConn.ExecContext(ctx, `GET * FROM accounts as a WHERE a.currency IS ? LIMIT ?`, currency, limit)
 
 	// DB, you give me some data, but I do not trust you.
 	// So, I encode it into DTO by myself
@@ -126,5 +167,6 @@ func (h *DBHandler) GetAccounts(w http.ResponseWriter, r http.Request) {
 	// Okay, We've done with data extraction
 
 	// -------------------- 3
-	// Write
+	// Write it back
+
 }
