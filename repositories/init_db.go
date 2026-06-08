@@ -26,8 +26,20 @@ func InitDB(ctx context.Context) *sql.DB {
 		log.Fatalf("DB init failed: %v", err.Error())
 	}
 
-	// schema :=
-	// db.ExecContext(ctx, schema)
+	_, err = db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS accounts (
+               id         TEXT PRIMARY KEY,
+            name       TEXT NOT NULL,
+            currency   TEXT NOT NULL,        -- ISO 4217: "USD", "VND", "JPY"
+            balance    INTEGER NOT NULL,     -- minor units. KHÔNG BAO GIỜ REAL/float.
+            created_at TEXT NOT NULL,        -- RFC3339
+            updated_at TEXT NOT NULL,
+            deleted_at TEXT                  -- NULL = chưa xóa (soft delete)
+    
+)`)
+
+	if err != nil {
+		log.Fatalf("DB init failed: %v", err.Error())
+	}
 
 	return db
 }

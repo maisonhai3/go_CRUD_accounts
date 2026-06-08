@@ -20,8 +20,14 @@ func (h *DBHandler) GetAccountById(w http.ResponseWriter, r *http.Request) {
 	// Real DB call
 	id := r.PathValue("id")
 	a, err := h.GetById(ctx, id)
+
 	if errors.Is(err, sql.ErrNoRows) {
 		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
