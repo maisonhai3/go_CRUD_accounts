@@ -45,6 +45,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /accounts", getAccounts)
 	mux.HandleFunc("GET /accounts/{id}", dbHandler.GetAccountById)
+	mux.HandleFunc("POSt /accounts", dbHandler.CreateAccount)
 
 	// Config this server Manually
 	srv := http.Server{

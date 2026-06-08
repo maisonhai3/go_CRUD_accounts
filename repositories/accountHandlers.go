@@ -49,7 +49,7 @@ func (h *DBHandler) GetAccountById(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(j)
 }
 
-func (h *DBHandler) GetAccountByUsername(w http.ResponseWriter, r *http.Request) {
+func (h *DBHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
