@@ -60,7 +60,7 @@ func (h *DBHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 
 	rDecoded.DisallowUnknownFields()
 
-	var createAccRq createAccSchema
+	var createAccRq CreateAccountRequest
 	err := rDecoded.Decode(&createAccRq)
 	if err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
@@ -68,23 +68,23 @@ func (h *DBHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Looks good, but I must be in doubt
-	if createAccRq.name == "" || len(createAccRq.name) > 30 {
+	if createAccRq.Name == "" || len(createAccRq.Name) > 30 {
 		http.Error(w, "name is too long", http.StatusBadRequest)
 		return
 	}
 
-	if !isValidCurrency(createAccRq.currency) {
+	if !isValidCurrency(createAccRq.Currency) {
 		http.Error(w, "currency is not supported", http.StatusBadRequest)
 		return
 	}
 
 	// ----- Commit point
-	var accDTO = CreateAccountDTO{
+	var params = CreateAccountParams{
 		ID:       "123abc",
-		Name:     createAccRq.name,
-		Currency: createAccRq.currency,
+		Name:     createAccRq.Name,
+		Currency: createAccRq.Currency,
 	}
-	id, err := h.createAccount(ctx, accDTO)
+	id, err := h.createAccount(ctx, params)
 	if err != nil {
 		http.Error(w, "unable to create new account", http.StatusInternalServerError)
 		return
@@ -96,12 +96,14 @@ func (h *DBHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	w.Write(buf)
 }
 
-type createAccSchema struct {
-	name     string
-	currency string
+// CreateAccountRequest is the JSON body a client sends to create an account.
+type CreateAccountRequest struct {
+	Name     string `json:"name"`
+	Currency string `json:"currency"`
 }
 
-type GetQueryParams struct {
+// ListAccountsQuery holds the validated query params for the list endpoint.
+type ListAccountsQuery struct {
 	Currency string
 	Limit    int
 }
@@ -170,7 +172,7 @@ func (h *DBHandler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 
 	// DB, you give me some data, but I do not trust you.
 	// So, I encode it into DTO by myself
-	getAccounts := toGetAccountDTOs(accounts)
+	getAccounts := toAccountResponses(accounts)
 
 	// Okay, We've done with data extraction
 
@@ -187,8 +189,8 @@ func (h *DBHandler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(buf)
 }
 
-func toGetAccountDTO(a AccountObject) GetAccountDTO {
-	return GetAccountDTO{
+func toAccountResponse(a Account) AccountResponse {
+	return AccountResponse{
 		ID:        a.ID,
 		Name:      a.Name,
 		Currency:  a.Currency,
@@ -199,11 +201,11 @@ func toGetAccountDTO(a AccountObject) GetAccountDTO {
 	}
 }
 
-func toGetAccountDTOs(aS []AccountObject) []GetAccountDTO {
-	var out = []GetAccountDTO{}
+func toAccountResponses(aS []Account) []AccountResponse {
+	var out = []AccountResponse{}
 
 	for _, a := range aS {
-		newA := toGetAccountDTO(a)
+		newA := toAccountResponse(a)
 		out = append(out, newA)
 	}
 

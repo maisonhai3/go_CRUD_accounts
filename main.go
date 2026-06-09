@@ -13,7 +13,7 @@ import (
 	"accountCRUD/repositories"
 )
 
-var accounts = []repositories.AccountObject{
+var accounts = []repositories.Account{
 	{
 		ID:        "123",
 		Name:      "Hoang Hai Ha Van",

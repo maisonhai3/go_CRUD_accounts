@@ -2,13 +2,16 @@ package repositories
 
 import "time"
 
-type CreateAccountDTO struct {
+// CreateAccountParams is the validated input passed to the DB layer when
+// creating an account.
+type CreateAccountParams struct {
 	ID       string
 	Name     string
 	Currency string
 }
 
-type GetAccountDTO struct {
+// AccountResponse is the JSON shape returned to clients for an account.
+type AccountResponse struct {
 	ID        string
 	Name      string
 	Currency  string
