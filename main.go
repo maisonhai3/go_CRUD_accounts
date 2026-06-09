@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -12,28 +11,6 @@ import (
 
 	"accountCRUD/repositories"
 )
-
-var accounts = []repositories.Account{
-	{
-		ID:        "123",
-		Name:      "Hoang Hai Ha Van",
-		Currency:  "USD",
-		Balance:   1000,
-		CreatedAt: time.Now(),
-	},
-}
-
-func getAccounts(w http.ResponseWriter, r *http.Request) {
-	buf, err := json.Marshal(accounts)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(buf)
-}
 
 func main() {
 	db := repositories.InitDB(context.Background())
