@@ -147,11 +147,12 @@ func (h *DBHandler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 	limit := 10
 	limitStr := query.Get("limit")
 	if limitStr != "" {
-		limit, err := strconv.Atoi(limitStr)
-		if err != nil || limit <= 0 || limit > 100 {
+		parsed, err := strconv.Atoi(limitStr)
+		if err != nil || parsed <= 0 || parsed > 100 {
 			http.Error(w, "limit is invalid", http.StatusBadRequest)
 			return
 		}
+		limit = parsed
 	}
 
 	// OK, I trust you.
