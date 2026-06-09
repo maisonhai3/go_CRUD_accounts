@@ -42,7 +42,8 @@ func (h *DBHandler) GetAll(ctx context.Context, limit int) ([]AccountObject, err
 		SELECT id, name, currency, balance, created_at, updated_at
 		FROM accounts
 		WHERE deleted_at IS NULL
-		ORDER BY created_at DESC`)
+		ORDER BY created_at DESC
+		LIMIT ?`, limit)
 	if err != nil {
 		return nil, err
 	}
