@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-type Account struct {
+type AccountObject struct {
 	ID        string
 	Name      string
 	Currency  string
@@ -20,8 +20,8 @@ type Account struct {
 
 // ----------- DB Handlers ------------
 
-func (h *DBHandler) GetById(ctx context.Context, id string) (Account, error) {
-	var a Account
+func (h *DBHandler) GetById(ctx context.Context, id string) (AccountObject, error) {
+	var a AccountObject
 	// Emit a query to db with Scan()
 	err := h.DBConn.QueryRowContext(ctx,
 		`
@@ -31,13 +31,13 @@ func (h *DBHandler) GetById(ctx context.Context, id string) (Account, error) {
 		`, id).Scan(&a.ID, &a.Name, &a.Currency, &a.Balance, &a.CreatedAt, &a.UpdatedAt)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return Account{}, err
+		return AccountObject{}, err
 	}
 
 	return a, err
 }
 
-func (h *DBHandler) getAll(ctx context.Context) ([]Account, error) {
+func (h *DBHandler) GetAll(ctx context.Context, limit int) ([]AccountObject, error) {
 	rows, err := h.DBConn.QueryContext(ctx, `
 		SELECT id, name, currency, balance, created_at, updated_at
 		FROM accounts
@@ -48,9 +48,9 @@ func (h *DBHandler) getAll(ctx context.Context) ([]Account, error) {
 	}
 	defer rows.Close()
 
-	var out []Account
+	var out []AccountObject
 	for rows.Next() {
-		var a Account
+		var a AccountObject
 		if err := rows.Scan(&a.ID, &a.Name, &a.Currency, &a.Balance, &a.CreatedAt, &a.UpdatedAt); err != nil {
 			return nil, err
 		}
@@ -61,8 +61,8 @@ func (h *DBHandler) getAll(ctx context.Context) ([]Account, error) {
 	return out, rows.Err()
 }
 
-func (h *DBHandler) createAccount(ctx context.Context, acc AccountDTO) (string, error) {
-	var a = Account{
+func (h *DBHandler) createAccount(ctx context.Context, acc CreateAccountDTO) (string, error) {
+	var a = AccountObject{
 		Currency:  acc.Currency,
 		Name:      acc.Name,
 		Balance:   0,

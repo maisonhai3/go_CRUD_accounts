@@ -13,7 +13,7 @@ import (
 	"accountCRUD/repositories"
 )
 
-var accounts = []repositories.Account{
+var accounts = []repositories.AccountObject{
 	{
 		ID:        "123",
 		Name:      "Hoang Hai Ha Van",
@@ -43,7 +43,7 @@ func main() {
 	defer db.Close()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /accounts", getAccounts)
+	mux.HandleFunc("GET /accounts", dbHandler.GetAccounts)
 	mux.HandleFunc("GET /accounts/{id}", dbHandler.GetAccountById)
 	mux.HandleFunc("POSt /accounts", dbHandler.CreateAccount)
 

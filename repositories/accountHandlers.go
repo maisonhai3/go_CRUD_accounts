@@ -79,7 +79,7 @@ func (h *DBHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// ----- Commit point
-	var accDTO = AccountDTO{
+	var accDTO = CreateAccountDTO{
 		ID:       "123abc",
 		Name:     createAccRq.name,
 		Currency: createAccRq.currency,
@@ -106,7 +106,7 @@ type GetQueryParams struct {
 	Limit    int
 }
 
-func (h *DBHandler) GetAccounts(w http.ResponseWriter, r http.Request) {
+func (h *DBHandler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
@@ -159,14 +159,52 @@ func (h *DBHandler) GetAccounts(w http.ResponseWriter, r http.Request) {
 
 	// -------------------- 2
 	// DBMS
-	a, err := h.DBConn.ExecContext(ctx, `GET * FROM accounts as a WHERE a.currency IS ? LIMIT ?`, currency, limit)
+	//a, err := h.DBConn.ExecContext(ctx, `GET * FROM accounts as a WHERE a.currency IS ? LIMIT ?`, currency, limit)
+	accounts, err := h.GetAll(ctx, limit)
+
+	if err != nil {
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
 
 	// DB, you give me some data, but I do not trust you.
 	// So, I encode it into DTO by myself
+	getAccounts := toGetAccountDTOs(accounts)
 
 	// Okay, We've done with data extraction
 
 	// -------------------- 3
 	// Write it back
+	buf, err := json.Marshal(getAccounts)
+	if err != nil {
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
 
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(buf)
+}
+
+func toGetAccountDTO(a AccountObject) GetAccountDTO {
+	return GetAccountDTO{
+		ID:        a.ID,
+		Name:      a.Name,
+		Currency:  a.Currency,
+		Balance:   a.Balance,
+		CreatedAt: a.CreatedAt,
+		UpdatedAt: a.UpdatedAt,
+		DeletedAt: a.DeletedAt,
+	}
+}
+
+func toGetAccountDTOs(aS []AccountObject) []GetAccountDTO {
+	var out = []GetAccountDTO{}
+
+	for _, a := range aS {
+		newA := toGetAccountDTO(a)
+		out = append(out, newA)
+	}
+
+	return out
 }
