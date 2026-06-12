@@ -1,4 +1,4 @@
-package repositories
+package handlers
 
 import (
 	"context"
@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"accountCRUD/repositories"
 )
 
-func (h *DBHandler) GetAccountById(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetAccountById(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 60*time.Second)
 	defer cancel()
 
@@ -20,7 +22,7 @@ func (h *DBHandler) GetAccountById(w http.ResponseWriter, r *http.Request) {
 
 	// Real DB call
 	id := r.PathValue("id")
-	a, err := h.GetById(ctx, id)
+	a, err := h.Repo.GetById(ctx, id)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		w.WriteHeader(http.StatusNotFound)
@@ -50,7 +52,7 @@ func (h *DBHandler) GetAccountById(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(j)
 }
 
-func (h *DBHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
@@ -79,12 +81,12 @@ func (h *DBHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// ----- Commit point
-	var params = CreateAccountParams{
+	var params = repositories.CreateAccountParams{
 		ID:       "123abc",
 		Name:     createAccRq.Name,
 		Currency: createAccRq.Currency,
 	}
-	id, err := h.createAccount(ctx, params)
+	id, err := h.Repo.CreateAccount(ctx, params)
 	if err != nil {
 		http.Error(w, "unable to create new account", http.StatusInternalServerError)
 		return
@@ -96,19 +98,7 @@ func (h *DBHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	w.Write(buf)
 }
 
-// CreateAccountRequest is the JSON body a client sends to create an account.
-type CreateAccountRequest struct {
-	Name     string `json:"name"`
-	Currency string `json:"currency"`
-}
-
-// ListAccountsQuery holds the validated query params for the list endpoint.
-type ListAccountsQuery struct {
-	Currency string
-	Limit    int
-}
-
-func (h *DBHandler) GetAccounts(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
@@ -163,7 +153,7 @@ func (h *DBHandler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 	// -------------------- 2
 	// DBMS
 	//a, err := h.DBConn.ExecContext(ctx, `GET * FROM accounts as a WHERE a.currency IS ? LIMIT ?`, currency, limit)
-	accounts, err := h.GetAll(ctx, limit)
+	accounts, err := h.Repo.GetAll(ctx, limit)
 
 	if err != nil {
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -189,7 +179,7 @@ func (h *DBHandler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(buf)
 }
 
-func toAccountResponse(a Account) AccountResponse {
+func toAccountResponse(a repositories.Account) AccountResponse {
 	return AccountResponse{
 		ID:        a.ID,
 		Name:      a.Name,
@@ -201,7 +191,7 @@ func toAccountResponse(a Account) AccountResponse {
 	}
 }
 
-func toAccountResponses(aS []Account) []AccountResponse {
+func toAccountResponses(aS []repositories.Account) []AccountResponse {
 	var out = []AccountResponse{}
 
 	for _, a := range aS {

@@ -1,4 +1,4 @@
-package repositories
+package handlers
 
 func isValidCurrency(cur string) bool {
 	// Whitelist

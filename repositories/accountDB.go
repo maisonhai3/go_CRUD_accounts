@@ -62,7 +62,7 @@ func (h *DBHandler) GetAll(ctx context.Context, limit int) ([]Account, error) {
 	return out, rows.Err()
 }
 
-func (h *DBHandler) createAccount(ctx context.Context, acc CreateAccountParams) (string, error) {
+func (h *DBHandler) CreateAccount(ctx context.Context, acc CreateAccountParams) (string, error) {
 	var a = Account{
 		Currency:  acc.Currency,
 		Name:      acc.Name,

@@ -9,20 +9,23 @@ import (
 	"syscall"
 	"time"
 
+	"accountCRUD/handlers"
 	"accountCRUD/repositories"
 )
 
 func main() {
 	db := repositories.InitDB(context.Background())
-	dbHandler := &repositories.DBHandler{
+	repo := &repositories.DBHandler{
 		DBConn: db,
 	}
 	defer db.Close()
 
+	h := &handlers.Handler{Repo: repo}
+
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /accounts", dbHandler.GetAccounts)
-	mux.HandleFunc("GET /accounts/{id}", dbHandler.GetAccountById)
-	mux.HandleFunc("POSt /accounts", dbHandler.CreateAccount)
+	mux.HandleFunc("GET /accounts", h.GetAccounts)
+	mux.HandleFunc("GET /accounts/{id}", h.GetAccountById)
+	mux.HandleFunc("POSt /accounts", h.CreateAccount)
 
 	// Config this server Manually
 	srv := http.Server{
