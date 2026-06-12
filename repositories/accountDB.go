@@ -63,11 +63,13 @@ func (h *DBHandler) GetAll(ctx context.Context, limit int) ([]Account, error) {
 }
 
 func (h *DBHandler) CreateAccount(ctx context.Context, acc CreateAccountParams) (string, error) {
+	now := time.Now()
 	var a = Account{
 		Currency:  acc.Currency,
 		Name:      acc.Name,
 		Balance:   0,
-		CreatedAt: time.Now(),
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 
 	result, err := h.DBConn.ExecContext(ctx, `INSERT INTO accounts (currency, name, balance, created_at) VALUES (?,?,?,?)`,
