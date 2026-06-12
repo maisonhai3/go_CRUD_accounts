@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -20,15 +21,40 @@ type Account struct {
 
 // ----------- DB Handlers ------------
 
-func (h *DBHandler) GetById(ctx context.Context, id string) (Account, error) {
+// rowScanner is satisfied by both *sql.Row (QueryRow) and *sql.Rows (Query),
+// so scanAccount can serve the single-row and multi-row reads alike.
+type rowScanner interface {
+	Scan(dest ...any) error
+}
+
+// scanAccount reads one account row. Timestamps are stored as RFC3339 TEXT,
+// so they're scanned into strings and parsed back into time.Time.
+func scanAccount(s rowScanner) (Account, error) {
 	var a Account
+	var createdAt, updatedAt string
+	if err := s.Scan(&a.ID, &a.Name, &a.Currency, &a.Balance, &createdAt, &updatedAt); err != nil {
+		return Account{}, err
+	}
+
+	var err error
+	if a.CreatedAt, err = time.Parse(time.RFC3339, createdAt); err != nil {
+		return Account{}, err
+	}
+	if a.UpdatedAt, err = time.Parse(time.RFC3339, updatedAt); err != nil {
+		return Account{}, err
+	}
+
+	return a, nil
+}
+
+func (h *DBHandler) GetById(ctx context.Context, id string) (Account, error) {
 	// Emit a query to db with Scan()
-	err := h.DBConn.QueryRowContext(ctx,
+	a, err := scanAccount(h.DBConn.QueryRowContext(ctx,
 		`
 			SELECT id, name, currency, balance, created_at, updated_at
 			FROM accounts
 			WHERE id = ? AND deleted_at IS NULL
-		`, id).Scan(&a.ID, &a.Name, &a.Currency, &a.Balance, &a.CreatedAt, &a.UpdatedAt)
+		`, id))
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return Account{}, err
@@ -37,13 +63,24 @@ func (h *DBHandler) GetById(ctx context.Context, id string) (Account, error) {
 	return a, err
 }
 
-func (h *DBHandler) GetAll(ctx context.Context, limit int) ([]Account, error) {
-	rows, err := h.DBConn.QueryContext(ctx, `
+func (h *DBHandler) GetAll(ctx context.Context, limit int, currency string) ([]Account, error) {
+	cond := []string{"deleted_at IS NULL"}
+	args := []any{}
+
+	if currency != "" {
+		cond = append(cond, "currency = ?")
+		args = append(args, currency)
+	}
+
+	query := `
 		SELECT id, name, currency, balance, created_at, updated_at
 		FROM accounts
-		WHERE deleted_at IS NULL
+		WHERE ` + strings.Join(cond, " AND ") + `
 		ORDER BY created_at DESC
-		LIMIT ?`, limit)
+		LIMIT ?`
+	args = append(args, limit)
+
+	rows, err := h.DBConn.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,8 +88,8 @@ func (h *DBHandler) GetAll(ctx context.Context, limit int) ([]Account, error) {
 
 	var out []Account
 	for rows.Next() {
-		var a Account
-		if err := rows.Scan(&a.ID, &a.Name, &a.Currency, &a.Balance, &a.CreatedAt, &a.UpdatedAt); err != nil {
+		a, err := scanAccount(rows)
+		if err != nil {
 			return nil, err
 		}
 
@@ -63,20 +100,14 @@ func (h *DBHandler) GetAll(ctx context.Context, limit int) ([]Account, error) {
 }
 
 func (h *DBHandler) CreateAccount(ctx context.Context, acc CreateAccountParams) (string, error) {
-	now := time.Now()
-	var a = Account{
-		Currency:  acc.Currency,
-		Name:      acc.Name,
-		Balance:   0,
-		CreatedAt: now,
-		UpdatedAt: now,
-	}
+	// Store timestamps as RFC3339 TEXT so they round-trip cleanly on read.
+	now := time.Now().UTC().Format(time.RFC3339)
 
 	result, err := h.DBConn.ExecContext(ctx,
 		`INSERT INTO accounts
 			(currency, name, balance, created_at, updated_at)
 			VALUES (?,?,?,?,?)`,
-		a.Currency, a.Name, a.Balance, a.CreatedAt, a.UpdatedAt)
+		acc.Currency, acc.Name, 0, now, now)
 	if err != nil {
 		return "", err
 	}

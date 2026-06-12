@@ -103,7 +103,7 @@ func (h *Handler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 
 	// Trusted Boundary mindset
 
-	// -------------------- 1
+	// --------------------
 	// I don't believe you, requesters
 
 	// Don't parse the whole request.
@@ -130,7 +130,7 @@ func (h *Handler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 	// Okay, you provide rightful fields, but not enough
 	// Validations
 	currency := query.Get("currency")
-	if !isValidCurrency(currency) {
+	if currency != "" && !isValidCurrency(currency) {
 		http.Error(w, "currency is invalid", http.StatusBadRequest)
 		return
 	}
@@ -152,7 +152,7 @@ func (h *Handler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 	// -------------------- 2
 	// DBMS
 	//a, err := h.DBConn.ExecContext(ctx, `GET * FROM accounts as a WHERE a.currency IS ? LIMIT ?`, currency, limit)
-	accounts, err := h.Repo.GetAll(ctx, limit)
+	accounts, err := h.Repo.GetAll(ctx, limit, currency)
 
 	if err != nil {
 		http.Error(w, "internal error", http.StatusInternalServerError)

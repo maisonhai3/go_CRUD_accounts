@@ -28,7 +28,7 @@ func InitDB(ctx context.Context) *sql.DB {
 
 	_, err = db.ExecContext(ctx,
 		`CREATE TABLE IF NOT EXISTS accounts (
-            id         TEXT PRIMARY KEY AUTOINCREMENT,
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
             name       TEXT NOT NULL,
             currency   TEXT NOT NULL,        -- ISO 4217: "USD", "VND", "JPY"
             balance    INTEGER NOT NULL,     -- minor units. KHÔNG BAO GIỜ REAL/float.
