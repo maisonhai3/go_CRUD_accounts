@@ -127,6 +127,11 @@ func (h *Handler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if len(query["currency"]) > 1 {
+		http.Error(w, "many currencies is not allowed", http.StatusBadRequest)
+		return
+	}
+
 	// Okay, you provide rightful fields, but not enough
 	// Validations
 	currency := query.Get("currency")
