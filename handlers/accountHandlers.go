@@ -82,7 +82,6 @@ func (h *Handler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 
 	// ----- Commit point
 	var params = repositories.CreateAccountParams{
-		ID:       "123abc",
 		Name:     createAccRq.Name,
 		Currency: createAccRq.Currency,
 	}

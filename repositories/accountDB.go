@@ -73,8 +73,8 @@ func (h *DBHandler) CreateAccount(ctx context.Context, acc CreateAccountParams) 
 	}
 
 	result, err := h.DBConn.ExecContext(ctx,
-		`INSERT INTO accounts 
-			(currency, name, balance, created_at) 
+		`INSERT INTO accounts
+			(currency, name, balance, created_at, updated_at)
 			VALUES (?,?,?,?,?)`,
 		a.Currency, a.Name, a.Balance, a.CreatedAt, a.UpdatedAt)
 	if err != nil {
