@@ -25,7 +25,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /accounts", h.GetAccounts)
 	mux.HandleFunc("GET /accounts/{id}", h.GetAccountById)
-	mux.HandleFunc("POSt /accounts", h.CreateAccount)
+	mux.HandleFunc("POST /accounts", h.CreateAccount)
 
 	// Config this server Manually
 	srv := http.Server{
