@@ -85,13 +85,13 @@ func (h *Handler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		Name:     createAccRq.Name,
 		Currency: createAccRq.Currency,
 	}
-	id, err := h.Repo.CreateAccount(ctx, params)
+	newAcc, err := h.Repo.CreateAccount(ctx, params)
 	if err != nil {
 		http.Error(w, "unable to create new account", http.StatusInternalServerError)
 		return
 	}
 
-	buf, _ := json.Marshal(id)
+	buf, _ := json.Marshal(toAccountResponse(newAcc))
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	w.Write(buf)

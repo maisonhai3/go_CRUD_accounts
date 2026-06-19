@@ -99,23 +99,31 @@ func (h *DBHandler) GetAll(ctx context.Context, limit int, currency string) ([]A
 	return out, rows.Err()
 }
 
-func (h *DBHandler) CreateAccount(ctx context.Context, acc CreateAccountParams) (string, error) {
+func (h *DBHandler) CreateAccount(ctx context.Context, acc CreateAccountParams) (Account, error) {
 	// Store timestamps as RFC3339 TEXT so they round-trip cleanly on read.
-	now := time.Now().UTC().Format(time.RFC3339)
+	now := time.Now().UTC()
+	nowStr := now.Format(time.RFC3339)
 
 	result, err := h.DBConn.ExecContext(ctx,
 		`INSERT INTO accounts
 			(currency, name, balance, created_at, updated_at)
 			VALUES (?,?,?,?,?)`,
-		acc.Currency, acc.Name, 0, now, now)
+		acc.Currency, acc.Name, 0, nowStr, nowStr)
 	if err != nil {
-		return "", err
+		return Account{}, err
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return "", err
+		return Account{}, err
 	}
 
-	return strconv.FormatInt(id, 10), nil
+	return Account{
+		ID:        strconv.FormatInt(id, 10),
+		Name:      acc.Name,
+		Currency:  acc.Currency,
+		Balance:   0,
+		CreatedAt: now.Truncate(time.Second),
+		UpdatedAt: now.Truncate(time.Second),
+	}, nil
 }
