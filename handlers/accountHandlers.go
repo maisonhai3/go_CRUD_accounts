@@ -191,7 +191,6 @@ func toAccountResponse(a repositories.Account) AccountResponse {
 		Balance:   a.Balance,
 		CreatedAt: a.CreatedAt,
 		UpdatedAt: a.UpdatedAt,
-		DeletedAt: a.DeletedAt,
 	}
 }
 
