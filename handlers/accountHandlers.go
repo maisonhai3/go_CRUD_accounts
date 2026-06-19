@@ -70,7 +70,7 @@ func (h *Handler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Looks good, but I must be in doubt
-	if createAccRq.Name == "" || len(createAccRq.Name) > 30 {
+	if createAccRq.Name == "" || len(createAccRq.Name) > 300 {
 		http.Error(w, "name is too long", http.StatusBadRequest)
 		return
 	}
