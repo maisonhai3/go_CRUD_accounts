@@ -57,7 +57,7 @@ func (h *DBHandler) GetById(ctx context.Context, id string) (Account, error) {
 		`, id))
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return Account{}, nil
+		return Account{}, ErrAccNotFound
 	}
 
 	return a, err
