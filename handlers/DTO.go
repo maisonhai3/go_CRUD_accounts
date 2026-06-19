@@ -16,11 +16,11 @@ type ListAccountsQuery struct {
 
 // AccountResponse is the JSON shape returned to clients for an account.
 type AccountResponse struct {
-	ID        string
-	Name      string
-	Currency  string
-	Balance   int64
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt time.Time
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Currency  string    `json:"currency"`
+	Balance   int64     `json:"balance"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	DeletedAt time.Time `json:"deleted_at"`
 }
