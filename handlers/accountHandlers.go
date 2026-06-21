@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -24,7 +23,7 @@ func (h *Handler) GetAccountById(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	a, err := h.Repo.GetById(ctx, id)
 
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, repositories.ErrAccNotFound) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
