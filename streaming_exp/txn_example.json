@@ -1,0 +1,4 @@
+[
+  {"id": "TXN-001", "amount": 500000, "status": "SUCCESS"},
+  {"id": "TXN-002", "amount": 150000, "status": "FAILED"},
+]
