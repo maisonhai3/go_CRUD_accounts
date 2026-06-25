@@ -14,6 +14,9 @@ func RequestHandle(r http.Request){
 	buff := *buffPtr
 
 	headLen, err := io.ReadFull(r.Body, buff)
+	if err != nil{
+		return
+	}
 
 	if http.DetectContentType(buff[:headLen]) != "image/jpeg" {
 		return
@@ -25,5 +28,4 @@ func RequestHandle(r http.Request){
 	
 	// Forward the Body to AWS
 	aws.Put(restoreBody)
-	
 }
