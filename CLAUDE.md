@@ -8,15 +8,18 @@ A learning/practice repo for Go backend fluency, centered on an account-CRUD HTT
 
 ## Commands
 
+The account service is its own Go module rooted at `phase_1_foundations/` — commands run from inside that directory:
+
 ```bash
-go run .                      # run the account service on :8080 (root package main)
+cd phase_1_foundations
+go run .                      # run the account service on :8080
 go build -o accountCRUD.exe . # build the service binary
 go test ./...                 # run tests (none exist yet — README lists tests as a requirement)
 go test -run TestCreateAccount ./handlers   # run a single test by name once tests exist
 go vet ./...                  # static checks
 ```
 
-The standalone learning sketches now live under `experiments/` (see below) and run independently:
+The standalone learning sketches live under `experiments/` (see below) and run independently from the repo root:
 
 ```bash
 go run ./experiments/leak     # goroutine-leak / context-cancellation experiments
@@ -24,7 +27,13 @@ go run ./experiments/leak     # goroutine-leak / context-cancellation experiment
 
 ## Repo layout
 
-The account service lives at the repo root (`main.go`, `handlers/`, `repositories/`). All learning sketches are grouped under `experiments/` so they don't clutter the service. `go build ./...` and `go vet ./...` from the root cover the service plus the in-module sketches; `experiments/concurrency_exp/` is its **own Go module** and must be built/vetted from inside that directory.
+The repo is organized by phase, each its own Go module:
+
+- **`phase_1_foundations/`** — the account CRUD service (`main.go`, `handlers/`, `repositories/`). This is the module described in the Architecture section below.
+- **`phase_2_ledger_core/`** — scaffold for the next phase (currently a placeholder `main.go`; not yet implemented).
+- **`experiments/`** — learning sketches, grouped here so they don't clutter either phase. `experiments/concurrency_exp/` is its **own Go module** and must be built/vetted from inside that directory; the rest build under whatever module sits above them.
+
+Each phase folder has its own `go.mod`/`go.sum`, so `go build ./...` / `go vet ./...` must be run from inside the relevant phase directory, not the repo root.
 
 ## Scratchpad caveat
 
@@ -58,7 +67,7 @@ Mapping helpers live in `handlers/accountHandlers.go` (`toAccountResponse`, `toA
 
 ### SQLite driver
 
-Uses `modernc.org/sqlite` — a **pure-Go** driver (no CGO, no C toolchain needed). The driver name passed to `sql.Open` is `"sqlite"` (not `"sqlite3"`), and it is registered via the blank import `_ "modernc.org/sqlite"` in `repositories/init_db.go`. The DSN enables WAL mode and a busy timeout. The DB file `accounts.db` is created in the working directory on first run.
+Uses `modernc.org/sqlite` — a **pure-Go** driver (no CGO, no C toolchain needed). The driver name passed to `sql.Open` is `"sqlite"` (not `"sqlite3"`), and it is registered via the blank import `_ "modernc.org/sqlite"` in `repositories/init_db.go`. The DSN enables WAL mode and a busy timeout. The DB file `accounts.db` is created in the working directory on first run — i.e. inside `phase_1_foundations/` when run via `cd phase_1_foundations && go run .`.
 
 ## Learning sketches (not part of the service)
 
