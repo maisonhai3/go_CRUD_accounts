@@ -16,15 +16,19 @@ go test -run TestCreateAccount ./handlers   # run a single test by name once tes
 go vet ./...                  # static checks
 ```
 
-The standalone learning sketches each have their own `main` and run independently:
+The standalone learning sketches now live under `experiments/` (see below) and run independently:
 
 ```bash
-go run ./leak                 # goroutine-leak / context-cancellation experiments
+go run ./experiments/leak     # goroutine-leak / context-cancellation experiments
 ```
 
-## Build caveat
+## Repo layout
 
-`example.go` at the repo root is `package main` alongside `main.go` but is an **incomplete scratch file with deliberate syntax errors** (e.g. a bare `var`, `fmt.print()` with no import). It breaks `go build .` / `go run .` for the root package. Treat it as a scratchpad — if a build of the main service is needed, that file must be fixed or excluded first. Confirm intent before "fixing" it; it may be a work-in-progress exercise.
+The account service lives at the repo root (`main.go`, `handlers/`, `repositories/`). All learning sketches are grouped under `experiments/` so they don't clutter the service. `go build ./...` and `go vet ./...` from the root cover the service plus the in-module sketches; `experiments/concurrency_exp/` is its **own Go module** and must be built/vetted from inside that directory.
+
+## Scratchpad caveat
+
+Some files under `experiments/` are deliberately incomplete exercises. When one won't compile, treat it as a work-in-progress scratchpad and **confirm intent before "fixing" it** — the point of the repo is the user practicing, not a green build. (`example.go`, an earlier root-level scratch of this kind, has since been removed.)
 
 ## Architecture
 
@@ -58,5 +62,9 @@ Uses `modernc.org/sqlite` — a **pure-Go** driver (no CGO, no C toolchain neede
 
 ## Learning sketches (not part of the service)
 
-- **`leak/`** — `package main` exploring goroutine leaks, `context` cancellation/timeout, `sync.WaitGroup` + buffered channels + `select` fan-in.
-- **`streaming_exp/`** — `package streaming_exp`, streaming-parse of a large JSON array from an HTTP body via `json.Decoder.Token()` + `More()` + per-element `Decode()` (constant memory, no full-array load).
+All under `experiments/`:
+
+- **`experiments/leak/`** — `package main` exploring goroutine leaks, `context` cancellation/timeout, `sync.WaitGroup` + buffered channels + `select` fan-in.
+- **`experiments/streaming_exp/`** — `package streaming_exp`, streaming-parse of a large JSON array from an HTTP body via `json.Decoder.Token()` + `More()` + per-element `Decode()` (constant memory, no full-array load). `txn_example.json` is sample input.
+- **`experiments/streaming_file/`** — `package streamingfile`, streaming a multipart file upload straight to object storage without buffering the whole file: sniff MIME from a pooled 512-byte head buffer (`sync.Pool`), then `io.MultiReader` the sniffed head back in front of the rest of the body. `aws_stub.go` stands in for a real S3 client so the sketches compile.
+- **`experiments/concurrency_exp/`** — **its own Go module** (`golang.org/x/sync`). `package main` at its root covers data races / race conditions; `api_calls/` demoes `errgroup`; `cache_stampede/` demoes `singleflight`. Build and run from inside `experiments/concurrency_exp/`.
