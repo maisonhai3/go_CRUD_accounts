@@ -2,58 +2,53 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	dbrepository "phase_1_foundations/db_repository"
+	httphandler "phase_1_foundations/http_handler"
 	"syscall"
 	"time"
-
-	"accountCRUD/handlers"
-	"accountCRUD/repositories"
 )
 
 func main() {
-	db := repositories.InitDB(context.Background())
-	repo := &repositories.DBHandler{
-		DBConn: db,
-	}
-	defer db.Close()
+	// Init DBMS
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	h := &handlers.Handler{Repo: repo}
+	dbRepo := dbrepository.Init(ctx)
+	defer func(Conn *sql.DB) {
+		err := Conn.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(dbRepo.Conn)
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /accounts", h.GetAccounts)
-	mux.HandleFunc("GET /accounts/{id}", h.GetAccountById)
-	mux.HandleFunc("POST /accounts", h.CreateAccount)
-
-	// Config this server Manually
-	srv := http.Server{
+	// Init Server
+	// Routing
+	httpHandler := httphandler.HTTPHandler{DBRepo: dbRepo}
+	muxServer := http.NewServeMux()
+	muxServer.HandleFunc("POST /accounts", httpHandler.CreateAccount)
+	// Config
+	httpSrv := http.Server{
 		Addr:         ":8080",
-		Handler:      mux,
+		Handler:      muxServer,
 		ReadTimeout:  60 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
 
-	// Graceful Shutdown
+	// Gracefully shutdown
+	quitChan := make(chan os.Signal, 1)
+	signal.Notify(quitChan, syscall.SIGINT, syscall.SIGTERM)
+	<-quitChan
 
-	// Just monitoring if we are running properly
-	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server error: %v", err)
-		}
-	}()
-
-	// Waiting for OS say us to cook
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit // We're waiting
-
-	// Okay, OS said it. I quit.
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("Shutdown Failed: %v", err)
+
+	if err := httpSrv.Shutdown(ctx); err != nil {
+		log.Fatalf("Failed to shutdown gracefully: %v", err.Error())
 	}
 }
