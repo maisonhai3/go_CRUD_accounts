@@ -1,20 +1,21 @@
 package dbrepository
 
-import (
-	"context"
-	"time"
-)
+import "context"
 
-func (db *DBRepo) CreateAccount(ctx context.Context, a *NewAccount)(any, error){
-	var nowForResponse = time.Now().UTC()
-	var nowForDB = nowForResponse.Format(time.RFC3339)
+func (db *DBRepo) CreateAccount(ctx context.Context, a *NewAccount) (*CreatedAccount, error) {
+	const balance = 0 // server always forces a new account to start at zero
 
-	new, err := db.Conn.ExecContext(ctx, 
-		`INSERT INTO accounts ()`,
-		a.Name, nowForDB)
-	if err  != nil	{
+	res, err := db.Conn.ExecContext(ctx,
+		`INSERT INTO accounts (name, currency, balance) VALUES (?, ?, ?)`,
+		a.Name, a.Currency, balance)
+	if err != nil {
 		return nil, err
 	}
-	
-	return new, nil
+
+	id, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	return &CreatedAccount{ID: id, Name: a.Name}, nil
 }

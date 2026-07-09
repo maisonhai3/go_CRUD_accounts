@@ -40,6 +40,12 @@ func main() {
 		IdleTimeout:  120 * time.Second,
 	}
 
+	go func() {
+		if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Failed to serve: %v", err)
+		}
+	}()
+
 	// Gracefully shutdown
 	quitChan := make(chan os.Signal, 1)
 	signal.Notify(quitChan, syscall.SIGINT, syscall.SIGTERM)

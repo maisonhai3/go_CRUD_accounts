@@ -19,6 +19,6 @@ func Migrate(ctx context.Context, db *sql.DB) {
 	)`)
 
 	if err != nil {
-		log.Fatalf("Failed to migrate: ", err.Error())
+		log.Fatalf("Failed to migrate: %v", err)
 	}
 }

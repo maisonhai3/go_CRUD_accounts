@@ -1,10 +1,11 @@
 package dbrepository
 
 type NewAccount struct {
-	Name string
+	Name     string
+	Currency string
 }
 
 type CreatedAccount struct {
-	ID string
+	ID   int64
 	Name string
 }

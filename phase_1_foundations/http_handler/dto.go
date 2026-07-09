@@ -1,5 +1,6 @@
 package httphandler
 
 type CreateAccountRequestDTO struct {
-	Name string
+	Name     string
+	Currency string
 }
