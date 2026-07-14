@@ -1,4 +1,4 @@
-package phase1semaphores
+package worker_pool
 
 type WorkerStatus string
 const (

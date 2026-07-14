@@ -1,3 +1,4 @@
 accounts.db
 accounts.db-shm
 accounts.db-wal
+*.exe

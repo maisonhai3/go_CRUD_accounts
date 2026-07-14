@@ -1,4 +1,4 @@
-package phase1semaphores
+package worker_pool
 
 import (
 	"context"
@@ -8,16 +8,20 @@ import (
 type Manager struct {
 	N int
 	ctx context.Context
-	jobQueue JobQueue
-	wg sync.WaitGroup
+	jobQueue chan *Job
+	wg *sync.WaitGroup
 }
 
-func (m *Manager) New (){
-	ctx := context.Context(context.Background())
-	m.ctx = ctx
+func NewManager(n int, q chan *Job, wg *sync.WaitGroup) *Manager {
+	return &Manager{
+		N: n,
+		jobQueue: q,
+		wg: wg,
+		ctx: context.Background(),
+	}
 }
 
-func (m *Manager) GracefulShutdonw(){
+func (m *Manager) GracefulShutdown(){
 	m.wg.Wait()
 }
 
