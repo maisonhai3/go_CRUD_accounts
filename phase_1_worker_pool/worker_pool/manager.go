@@ -21,6 +21,14 @@ func NewManager(n int, q chan *Job, wg *sync.WaitGroup) *Manager {
 	}
 }
 
+func (m *Manager) InitWorker(){
+	for range m.N {
+		w := NewWorker(m.jobQueue)
+		w.Start()
+	}
+	
+}
+
 func (m *Manager) GracefulShutdown(){
 	m.wg.Wait()
 }
