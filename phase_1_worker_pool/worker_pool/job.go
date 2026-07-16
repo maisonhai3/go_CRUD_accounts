@@ -16,7 +16,7 @@ const (
 )
 
 type Job struct {
-	ID     string
+	ID     uuid.UUID
 	Status JobStatus
 }
 
