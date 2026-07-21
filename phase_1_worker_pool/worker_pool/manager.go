@@ -8,25 +8,30 @@ import (
 type Manager struct {
 	N int
 	ctx context.Context
+	cancel context.CancelFunc
+	
 	jobQueue chan *Job
 	wg *sync.WaitGroup
+	workers [] *Worker
 }
 
 func NewManager(n int, q chan *Job, wg *sync.WaitGroup) *Manager {
+	ctx, cancel := context.WithCancel(context.Background())
 	return &Manager{
 		N: n,
 		jobQueue: q,
 		wg: wg,
-		ctx: context.Background(),
+		ctx: ctx,
+		cancel: cancel,
 	}
 }
 
 func (m *Manager) InitWorker(){
 	for range m.N {
-		w := NewWorker(m.jobQueue)
+		w := NewWorker(m.jobQueue, m.ctx)
 		w.Start()
+		m.workers = append(m.workers, w)
 	}
-	
 }
 
 func (m *Manager) GracefulShutdown(){
@@ -35,7 +40,4 @@ func (m *Manager) GracefulShutdown(){
 
 func (m *Manager) HardShutdown(){
 	m.cancel()
-}
-
-func (m *Manager) cancel(){
 }
