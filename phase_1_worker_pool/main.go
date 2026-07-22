@@ -9,7 +9,7 @@ import (
 
 
 func main(){
-	// -- Workers --
+	// -- Managers --
 	const N int = 3
 	jobQ := make(chan *worker_pool.Job, N)
 	var wg sync.WaitGroup
@@ -20,8 +20,10 @@ func main(){
 		&wg,
 	)
 	
+	// -- Workers --
+	m.InitWorker()
 
-	// -- Producers --
+	// -- Producers & Jobs--
 	p := worker_pool.NewProducer(jobQ)
 
 	var pWg sync.WaitGroup
@@ -29,7 +31,7 @@ func main(){
 		pWg.Go(
 			func(){
 				j := worker_pool.NewJob()
-				p.PushJob(j) // This will wait (be block) if the jobQ is full
+				p.PushJob(j) 
 			})
 	}
 

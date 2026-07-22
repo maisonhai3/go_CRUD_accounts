@@ -2,6 +2,7 @@ package worker_pool
 
 import (
 	"context"
+	"fmt"
 	"sync"
 )
 
@@ -29,15 +30,17 @@ func NewManager(n int, q chan *Job, wg *sync.WaitGroup) *Manager {
 func (m *Manager) InitWorker(){
 	for range m.N {
 		w := NewWorker(m.jobQueue, m.ctx)
-		w.Start()
+		go w.Start()
 		m.workers = append(m.workers, w)
 	}
 }
 
 func (m *Manager) GracefulShutdown(){
+	fmt.Print("GracefulShutdown")
 	m.wg.Wait()
 }
 
 func (m *Manager) HardShutdown(){
+	fmt.Print("HardShutdown")
 	m.cancel()
 }

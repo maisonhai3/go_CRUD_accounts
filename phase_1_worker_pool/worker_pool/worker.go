@@ -7,6 +7,7 @@ const (
 	W WorkerStatus = "WORKING"
 	P WorkerStatus = "PENDING"
 )
+
 type Worker struct {
 	State WorkerStatus
 	q chan *Job
@@ -18,6 +19,7 @@ func NewWorker(q chan *Job, mngCtx context.Context) *Worker{
 	w := Worker{
 		State: P,
 		q: q,
+		ctx: mngCtx,
 	}
 	return &w
 }
@@ -38,6 +40,9 @@ func (w *Worker) Start() {
 
 func (w *Worker) Perform(j *Job) {
 	w.State = W
+	w.job = j
+	
 	j.Perform()
+	
 	w.State = P
 }
